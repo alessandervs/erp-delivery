@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma_client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model Order {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  clientId Int
+  client   Client @relation(fields: [clientId], references: [id])
+
+  // Snapshot data (in case client changes, order history stays same? 
+  // Or do we rely on relation? Usually safer to keep snapshot for orders but user wants relation)
+  // User asked to "relate clients and orders". 
+  // Let's keep snapshot scalar fields for the receipt logic if needed, 
+  // OR just use the relation. 
+  // However, the "OrderForm" logic relies on specific textual fields for the "message".
+  // Let's keep the fields on Order for the "receipt" data, but link to Client for history.
+
+  channel        String
+  product        String
+  info           String?
+  deliveryPerson String?
+  paymentMethod  String
+  value          Float
+  message        String?
+  deliveryMsg    String?
+
+  // Snapshots for history accuracy if client moves?
+  // For simplicity and user request, we link them. 
+  // But wait, the form has "clientName", "phone", "address".
+  // If I update client, do old orders change? 
+  // Usually in food/delivery apps, you want the address *at that time*.
+  // But relational model implies normalizing.
+  // I will add the relation but ALSO keep the snapshot data used for the specific delivery,
+  // because a client might have multiple addresses over time or order for a friend.
+  // Actually, the user wants to "Create a model Client".
+
+  snapshotAddress String // Address where THIS order went
+  snapshotPhone   String // Phone used for THIS order
+  snapshotName    String // Name used
+}

@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+  //output   = "../generated/prisma_client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model Order {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  clientId Int
+  client   Client @relation(fields: [clientId], references: [id])
+
+  channel        String
+  product        String
+  info           String?
+  deliveryPerson String?
+  paymentMethod  String
+  value          Float
+
+  // Relations to messages
+  clientMessages   ClientMessage[]
+  deliveryMessages DeliveryMessage[]
+
+  snapshotAddress String
+  snapshotPhone   String
+  snapshotName    String
+}
+
+model ClientMessage {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  content   String
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model DeliveryMessage {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  content   String
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
